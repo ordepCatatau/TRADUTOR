@@ -6,340 +6,58 @@ Alunos: Saulo Cardoso - xx/xxxxx
 */
 
 /* 
-	Preprocessamentto 
+	DUVIDAS
 
-	entrada: arquivo de codigo bruto
-	saida: arquivo de codigo limpo com as diretivas resolvidas
+1	Como faz pra identificar um erro dentro da macro(marcar a linha)?
+2	Qual linha apontar para rotulos ausentes?
+3	Dois pontos define uma declaracao?
 
-	Retirar espacos, \n e tabs desnecessarios  
-
-	Resolver diretivas:
-	-EQU
-	-IF
-	-MACRO 
 */
 
+
+#include "preprocess.hpp"
 #include <iostream>
 #include <string>
+#include <cstring>
 using namespace std;
 
-/*Variaveis globais*/
-string tabela_mnt[100][2]; //contem os nomes das macros definidas no programa [nome da macro][numero da linha que comeca a macro na mdt]
-int contador_mnt=0;
+string tabela_instrucoes[19][2]={"ADD","1", //[numero da instrucao][0->nome 1->end depois]
+                                "SUB","1",
+                                "MULT","1",
+                                "DIV","1",
+                                "JMP","1",
+                                "JMPN","1",
+                                "JMPP","1",
+                                "JMPZ","1",
+                                "COPY","2",
+                                "LOAD","1",
+                                "STORE","1",
+                                "INPUT","1",
+                                "OUTPUT","1",
+                                "STOP","0",
+                                "SPACE","0",
+                                "CONST","1",
+                                "SECTION","1",
+                            	"TEXT","0",
+                            	"DATA","0"
+                                };
 
-string tabela_mdt[100]; //contem os corpos das macros [numero da linha][corpo da linha]
-int contador_mdt=0;
 
-string tabela_equ[100][2]; //contem os label e seus valores [contador de equ][0-label 1-valor][tamanho max da label]
-int contador_equ=0;
-
-int contador_linha=0;
-
-
-//Retorna o valor do equ
-string busca_tabela_equ(string label)
-{
-	int i=0;
-	
-	while(i<contador_equ)
-	{
-		if(label == tabela_equ[i][0])
-		{ 
-			return tabela_equ[i][1];
-		}
-		i++;
-	}
-	return"X";
-}
-//Adiciona definicoes do EQU
-void add_tabela_equ(string label, string valor)
-{
-	if(busca_tabela_equ(label)=="X")//Previne dupla entrada na tabela
-	{
-		tabela_equ[contador_equ][0] = label;
-		tabela_equ[contador_equ][1] = valor;
-		//cout<<label;
-		//cout<<valor;
-		contador_equ++;
-	}
-}
-//retorna a posicao
-string busca_tabela_mnt(string nome_macro)
-{
-	int i=0;
-	//cout<<"busca_tabela_mnt"<<endl;
-	while(i<=contador_mnt)
-	{
-		if(nome_macro== tabela_mnt[i][0])
-		{ 
-			
-			return tabela_mnt[i][1];
-		}
-		i++;
-	}
-	return"";
-}
-//Adiciona na tabela mnt
-void add_tabela_mnt(string nome_macro,int linha)
-{
-	//cout<<"add_tabela_mnt"<<endl;
-	tabela_mnt[contador_mnt][0] = nome_macro;
-	tabela_mnt[contador_mnt][1] = to_string(linha); //linha da mdt onde comeca o corpo da macro
-	contador_mnt++;
-}
-void print_tabela_mnt()
-{
-	int i;
-	cout<<"Tabela MNT"<<endl;
-	for(i=0;i<=contador_mnt;i++)
-		cout<<tabela_mnt[i][0]<<" "<<tabela_mnt[i][1]<<endl;	
-}
-//retorna o corpo da macro
-string busca_tabela_mdt(int linha)
-{
-	string corpo_macro;
-	//cout<<"busca_tabela_mdt"<<endl;
-	corpo_macro += tabela_mdt[linha];
-	return corpo_macro;
-}
-//Adiciona na tabela mdt
-void add_tabela_mdt(string corpo_macro)
-{
-	int i=1;
-	//cout<<"add_tabela_mdt"<<endl;
-	corpo_macro[corpo_macro.length()-3]='\0';
-	for(;i<corpo_macro.length();i++)
-		tabela_mdt[contador_mdt] += corpo_macro[i];
-
-	contador_mdt++;
-}
-void print_tabela_mdt()
-{
-	int i;
-	cout<<"Tabela MDT"<<endl;
-	for(i=0;i<=contador_mdt;i++)
-		cout<<tabela_mdt[i]<<endl;	
-}
-
-void cleaner(string arq)
-{
-	int i=0,k=0;
-	int flag_diretiva=0;
-	int flag_macro=0;
-	int cont_macro=0;
-	char c;
-	string valor_equ;
-	string linha_mnt;
-	string word;
-	string token[1000];
-	string corpo_macro;
-	string macro;
-	string nome_macro;
-	string linha;
-	FILE*  
-
-	file = fopen(arq.c_str(),"r");
-
-	//Separa  tokens
-	while(1)
-	{
-		c = toupper(fgetc(file));
-		if(c==EOF) break;
-		//cout<<c<<endl;
-		switch(c)
-		{
-			case(' '):
-			{
-				if(word!="")
-				{ 
-					token[i] = word;
-					i++;
-					token[i] = " ";
-					i++;
-				}
-				word = "";
-				break;
-			}
-			case('\t'):
-			{
-				if(word!="")
-				{ 
-					token[i] = word;
-					i++;
-					token[i] = " ";
-					i++;
-				}
-				word = "";
-				break;
-			}
-			case('\n'):
-			{
-
-				if(word!="")
-				{ 
-					token[i] = word;
-					i++;
-					token[i] = "\n";
-					i++;
-				}
-				word = "";
-				break;
-			}
-			case(';'):
-			{
-				if(word!="")
-				{ 
-					token[i] = word;
-					i++;
-					token[i] = "\n";
-					i++;
-					
-				}
-				token[i] = ";";
-				i++;
-				token[i] = " ";
-				i++;
-
-				word = "";
-				break;
-			}
-			case(':'):
-			{
-				if(word!="")
-				{ 
-					token[i] = word;
-					i++;
-					token[i] = " ";
-					i++;
-				}
-				token[i] = ":";
-				i++;	
-				token[i] = " ";
-				i++;
-				word = "";
-				break;
-			}
-
-			default:
-				word+=c;			
-			
-		}	
-	}//FIM de while
-	fclose(file);
-
-	//Escrever no arquivo limpo
-	file = fopen("intermediario.txt","w");
-	i=0;
-	while(token[i]!="")
-	{
-		//cout<<token[i];
-
-		//Substitui as definicoes do equ
-		valor_equ = busca_tabela_equ(token[i]);			
-		if(valor_equ!="X") token[i] = valor_equ;
-		
-		//Carrega o corpo da macro
-		if(flag_macro) 
-		{	
-			//cout<<token[i];
-			corpo_macro += token[i];
-		}
-		//Expande a macro
-		linha_mnt = busca_tabela_mnt(token[i]);
-		if(linha_mnt!="")
-		{
-			flag_diretiva=1;
-			//cout<<"linha_mnt "<<linha_mnt<<endl;
-			macro = busca_tabela_mdt(stoi(linha_mnt,nullptr,10));
-			//cout<<macro<<endl;
-			fputs(macro.c_str(),file);
-		}
-
-		if(token[i]=="EQU")
-		{
-			//cout<<"Equ detected"<<endl;
-			add_tabela_equ(token[i-4],token[i+2]);
-			flag_diretiva=1;
-		}
-		else if(token[i]==";")
-		{
-			fputs((linha).c_str(),file);
-			flag_diretiva=1;
-		}
-		else if(token[i]=="IF")
-		{
-			if(stoi(busca_tabela_equ(token[i+2]),nullptr,10)!=1)
-			{	
-				flag_diretiva=2;
-			}
-			else
-			{
-				flag_diretiva=1;
-			}
-		}
-		else if(token[i]=="MACRO")
-		{
-			flag_macro=1;
-			nome_macro = token[i-4];
-			add_tabela_mnt(nome_macro,contador_mdt);
-		}
-		else if(token[i]=="END")
-		{	
-			flag_macro=0;
-			flag_diretiva=1;
-			add_tabela_mdt(corpo_macro);
-			corpo_macro = "";
-		}
-
-		linha +=token[i]; 
-
-		if(token[i]=="\n")
-		{
-			if(!flag_diretiva && !flag_macro) //So escrever se habilitado
-				fputs(linha.c_str(),file);
-			
-			linha = "";
-
-			flag_diretiva--; //Habilita a escrita no arquivo limpo
-			if(flag_diretiva<0)
-				flag_diretiva=0;
-		}
-
-		i++;
-	}
-	fclose(file);
-}//FIM de cleaner
-
-string tabela_instrucoes[14][3]={"ADD","1","2", //[numero da instrucao][0->nome 1-> opcode 2-> tamanho][nome]
-                                "SUB","2","2",
-                                "MULT","3","2",
-                                "DIV","4","2",
-                                "JMP","5","2",
-                                "JMPN","6","2",
-                                "JMPP","7","2",
-                                "JMPZ","8","2",
-                                "COPY","9","3",
-                                "LOAD","10","2",
-                                "STORE","11","2",
-                                "INPUT","12","2",
-                                "OUTPUT","13","2",
-                                "STOP","14","1"};
-
-string tabela_diretivas[3]   = { "SPACE",//[numero da diretiva][tamanho max da diretiva]
-                                "CONST",
-                                "SECTION"};
-
-string tabela_simbolos[1000][4];//[linha da tabela][0-simbolo 1-valor 2-relativo/absoluto 3-extreno/publico]
+string tabela_simbolos[1000][4];//[linha da tabela][0-simbolo 1-endereco do simbolo definido 2-definido ou nao 3-ultimo endereco onde o simbolo foi encontrado]
 int contador_simbolos=0;
 
 string tabela_definicoes[1000][3];//[][0-simbolo 1-Valor 2-relativo/absoluto]
+int contador_def;
 
 string tabela_uso[1000][3];//[][0-simbolo 1-Endereco 2-operacao]
+int contador_uso;
 
-string tabela_erro[1000][2]; //[][numero da linha e tipo do erro]
+int tabela_erro[1000][2]; //[linha da tabela][linha no codigo e tipo do erro]
 int contador_erro=0;
 
 string codigo_obj[1000];
+
+string linha_[1000];
 
 
 void add_tabela_erro(int n_linha,int n_erro)
@@ -348,157 +66,443 @@ void add_tabela_erro(int n_linha,int n_erro)
 	tabela_erro[contador_erro][1] = n_erro;
 	contador_erro++;
 }
+void print_tabela_erro()
+{
+	int i=0;
 
-int busca_tabela_diretivas(string token)
+	cout<<"Tabela de erro"<<endl;
+	for(;i<contador_erro;i++)
+	{
+		cout<<i<<" "<<tabela_erro[i][0]<<" "<<tabela_erro[i][1]<<endl;
+		cout<<"linha - "<<tabela_erro[i][0]<<" "<< linha_[tabela_erro[i][0]]<<endl;
+	}
+	cout<<endl;
+
+}
+
+int busca_tabela_simbolos(string token)
 {
 	int i=0;
 	//cout<<"busca_tabela_mnt"<<endl;
-	while(i<=10)
+	while(i<=contador_simbolos)
 	{
-		if(token== tabela_diretivas[i])
+		//cout<<token<<" "<<tabela_instrucoes[i][0]<<endl;
+		if(token== tabela_simbolos[i][0])
+		{
 			return i;
+		}
 		i++;
 	}
 	return -1;
 }
+
+void print_tabela_simbolos()
+{
+	int i=0;
+
+	cout<<"Tabela Simbolos"<<endl;
+	for(;i<contador_simbolos;i++)
+	{
+		cout<<i<<" "<<tabela_simbolos[i][0]<<" "<<tabela_simbolos[i][1]<<" "<<tabela_simbolos[i][2]<<" "<<tabela_simbolos[i][3]<<endl;
+	}
+	cout<<endl;
+
+}
+
+void corrige_tabela()
+{
+	int i=0;
+
+	string end,end_;
+	for(;i<contador_simbolos;i++)
+	{
+		end = tabela_simbolos[i][3];
+		while(end!="-1")
+		{
+			end_ = codigo_obj[stoi(end,nullptr,10)];
+			codigo_obj[stoi(end,nullptr,10)] = tabela_simbolos[i][1];
+			end=end_;
+		}
+
+	} 
+	//Erro 1 - DECLARACAO e rotulos ausentes (qual linha apontar?)
+	for(i=0;i<contador_simbolos;i++)
+		if(tabela_simbolos[i][2]=="0") add_tabela_erro(-1,1);
+}
+
+void add_tabela_simbolos(string simbolo,int def,int end)
+{
+
+	tabela_simbolos[contador_simbolos][0] = simbolo;
+	tabela_simbolos[contador_simbolos][2] = to_string(def);	
+	if(def==1)
+	{
+		tabela_simbolos[contador_simbolos][1] = to_string(end);
+		tabela_simbolos[contador_simbolos][3] = "-1";	
+	}
+	else
+	{
+		tabela_simbolos[contador_simbolos][1] = "-1";
+		tabela_simbolos[contador_simbolos][3] = to_string(end);	
+	}
+	contador_simbolos++;
+}
+
 
 int busca_tabela_instrucoes(string token)
 {
 	int i=0;
 	//cout<<"busca_tabela_mnt"<<endl;
-	while(i<=10)
+	while(i<=18)
 	{
+		//cout<<token<<" "<<tabela_instrucoes[i][0]<<endl;
 		if(token== tabela_instrucoes[i][0])
+		{
+			
 			return i;
+		}
+		
 		i++;
 	}
 	return -1;
 }
-/*
-int scanner(string token)
-{
-	int i=0;
-	if(isdig(token[0])) return 1;
-	add_tabela_erro(contador_linha,10) //label invalido (vide tabela de erro)
 
-	while(i<=token.length())
+int scanner(string word)
+{
+	unsigned int i=0;
+	int flag_result=0;
+
+	if(isalpha(word[0])||word[0]=='_'||word[0]==':')
 	{
-
+		//cout<<word[i]<<" ";		
+		flag_result=0;
 	}
+	else flag_result=1;
+	//cout<<word[i]<<" ";
 
-	return 0;
-}
-void parser(string linha[10])
-{
-	int i;
-	int diretiva;
-	int instrucao;
-
-
-	while(linha[i]!="\n")
+	for(i=1;i<word.length();i++)
 	{
-		
-		else
-		{
-			scanner(linha[i]);
-		}
-
-
-
+	//	cout<<word[i]<<" ";
+		if(!isalnum(word[i])) 
+			flag_result=1;
 	}
-
-}*/
-
-void passagem_unica()
-{
-	FILE* file = fopen("intermediario.txt","r");
+	//cout<<endl;
+	return flag_result;
 	
-	int i=0,k;
-	int flag_text;
-	int flag_data;
-	int flag_const=0;
-	int flag_space=1;
-	int diretiva;
-	int instrucao;
-	int aux;
+
+}
+
+void passagem_unica(string arq_in, string arq_out)
+{
+	int i=0,n_op=0;
+	int valor;
+	int flag_space=0, flag_const=0, flag_section=0;
+	int section_data=0, section_text=0;
+	int pos=1;
 	int end=0;
+	int linha=1;
+	int ok_section=0;
+	int dois_pontos=0;
 
-	char word[100];
-	string token[100];
+	string word="";
+	string hex="";
+	string _word="";
+	
+	char c;
+	char aux[100];
+	
+	arq_in = arq_in.replace(arq_in.begin()+arq_in.find(".asm"),arq_in.end(),".inter");
+	
+	FILE* file = fopen(arq_in.c_str(),"r");
+	FILE* file_ = fopen(arq_out.c_str(),"w");
 
-	while(1)
+	//cout<<"IN - "<<arq_in<<endl;
+	//cout<<"OUT - "<<arq_out<<endl;
+
+	while(c!=EOF)
 	{
-		fscanf(file,"%s",word);
-		//cout<<word<<endl;
+		c = fgetc(file);
+		//cout<<c<<endl;
 
-		token[i] = word;
-		if(token[i] == "FIM") break;
-
-		diretiva 	= busca_tabela_diretivas(token[i]);
-		instrucao 	= busca_tabela_instrucoes(token[i]);
-		
-		if(flag_const==1) codigo_obj[end] = token[i];
-			flag_const=0;
-
-		if(flag_space==1) 
+		if(c==' '|| c=='\n')
 		{
-			aux = atoi(word);
-			if(aux)
+
+			cout<<word<<endl;
+			//print_tabela_simbolos();
+			//analisar o label depois do const
+
+			if(flag_const==1)
 			{
-				for(k=0;k<aux;k++)
+				flag_const=0;
+				itoa(stoi(word,nullptr,16),aux,10);
+				codigo_obj[end] = aux;
+				end++;
+
+				linha++;
+				word="";
+				pos=1;
+				dois_pontos=0;
+				
+				continue;
+			}
+			else if(flag_space==1)
+			{
+				flag_space=0;
+				if(pos!=1)
 				{
-					codigo_obj[end]="00";
+					for(i=0;i<stoi(word,nullptr,16);i++)
+					{
+						codigo_obj[end] = "0";
+						end++;
+					}		
+					linha++;			
+					word="";
+					pos=1;
+					n_op=0;
+					dois_pontos=0;
+					
+					continue;
+				}
+				else
+				{
+					codigo_obj[end] = "0";
 					end++;
 				}
-			}
-			else
-			{
-				codigo_obj[end] = "00";
-			}
-			flag_space=0;
-		} 
-
-		if(diretiva!=-1)
-		{
-			switch(diretiva)
-			{
-				case(0)://SPACE
-				{
-					codigo_obj[end] = "00";
-					break;
-				}
-				case(1)://CONST
-				{
-					flag_const=1;
-					break;
-				}
-			}
 				
+			}
+			else if(flag_section==1)
+			{
+				flag_section=0;
+
+				//Erro 13 - secao invalida
+				if(word!="TEXT" && word!="DATA")
+				{ 	
+					add_tabela_erro(linha,13);
+				}
+
+				//linha++;			
+				//word="";
+				//pos=1;
+				//n_op=0;
+				//continue;
+			}
+
+			
+			if(word==":")
+			{
+				dois_pontos++;
+				//Erro 1 - declaracao e ROTULOS ausentes
+				if(pos==1) add_tabela_erro(linha,1);
+			}
+
+			if(dois_pontos>1) 
+			{
+				dois_pontos=0;
+				//Erro 11 - dois rotulos na mesma linha	
+				add_tabela_erro(linha,11);
+			}
+
+			if(word=="")
+			{ 	
+				linha++; 
+				dois_pontos=0;
+				
+				continue;
+			}
+
+			//Erro 10 - token invalido
+			if(scanner(word)) add_tabela_erro(linha,10);
+
+			valor = busca_tabela_instrucoes(word);
+			//cout<<valor<<" ";
+
+			if(valor==-1 && flag_space==0 && flag_const==0)
+			{
+				
+				valor = busca_tabela_simbolos(word);
+				
+				if(valor==-1)//Primeira ocorrencia de um simbolo
+				{
+
+					//cout<<word<<" "<<pos<<endl;
+					if(pos==1)//Definicao de simbolo
+					{
+						add_tabela_simbolos(word,1,end);
+					}
+					else if(word!=":")//Simbolo sendo usado sem ser definido
+					{
+						add_tabela_simbolos(word,0,end);
+						codigo_obj[end] = "-1";
+						end++;
+					}
+					//print_tabela_simbolos();
+			
+				}
+				else//Depois da primeira ocorrencia
+				{
+					if(pos==1)//Definicao de simbolo
+					{
+						//Erro 2 - declaracao e rotulos repetidos
+						if(tabela_simbolos[valor][2] == "1") add_tabela_erro(linha,2);
+						else
+						{
+							tabela_simbolos[valor][2] = "1";
+							tabela_simbolos[valor][1] = to_string(end);
+						}
+						//print_tabela_simbolos();	
+					}
+					else
+					{					
+						if(tabela_simbolos[valor][2] == "1")//Se o simbolo ja foi definido
+						{
+							//[valor][1] -> endereco real
+							tabela_simbolos[valor][1] = to_string(end);
+							codigo_obj[end] = tabela_simbolos[valor][1];
+						}
+						else//Se o simbolo nao afoi definidp ainda
+						{
+							//[valor][3] -> endereco lista
+							codigo_obj[end] = tabela_simbolos[valor][3];
+							tabela_simbolos[valor][3] = to_string(end);
+						}
+
+						end++;
+					}
+					
+				}
+				
+			}
+			else if(valor>-1 && valor<14)//Achou uma instrucao
+			{
+				n_op = atoi(tabela_instrucoes[valor][1].c_str());
+				//cout<<"Numero de operandos de "<<word<<" "<<n_op<<endl;
+				codigo_obj[end] = to_string(valor+1);
+				end++;
+
+				//Erro 7 - diretivas ou intrucoes na secao errada
+				if(section_data==1) add_tabela_erro(linha,7);
+
+			}
+			else if(valor==14)
+			{
+				//Erro 7 - diretivas ou intrucoes na secao errada
+				if(section_text==1) add_tabela_erro(linha,7);
+
+			//	cout<<"SPACE"<<endl;
+				flag_space=1;
+			}
+			else if(valor==15)//CONST
+			{
+				//Erro 7 - diretivas ou intrucoes na secao errada
+				if(section_text==1) add_tabela_erro(linha,7);
+
+			//	cout<<"CONST"<<endl;
+				n_op=1;
+				flag_const=1;
+			}
+			else if(valor==16)//SECTION
+			{
+				//cout<<"SECTION"<<endl;
+				n_op=1;
+				flag_section=1;
+			}
+			else if(valor==17)//TEXT
+			{
+				n_op=0;
+
+				//cout<<"TEXT"<<endl;
+				//Erro 16 - duas secao TEXT
+				if(ok_section==1 || section_text==1) add_tabela_erro(linha,16);
+				else if(section_data==1)
+				{ 
+					ok_section=1;
+				}
+				section_data=0;
+				section_text=1;
+			}
+			else if(valor==18)//DATA
+			{	
+				//cout<<"DATA"<<endl;
+				n_op=0;
+
+				//Erro 17 - duas secao DATA
+				if(ok_section==1 || section_data==1) add_tabela_erro(linha,17);
+				else if(section_text==1)
+				{ 
+					ok_section=1;
+				}
+				section_data=1;
+				section_text=0;
+			}
+
+			//cout<<word<<" "<<valor<<endl;
+
+			linha_[linha]+=" ";
+			linha_[linha]+=word;
+			word="";
+
 		}
-		else if(instrucao!=-1)
+		else word+=c;
+		 	
+	
+		if(c=='\n')
 		{
-			codigo_obj[end] = to_string(instrucao);
+			//Erro 9 - quantidade de operandos errada
+			if(n_op!=0 && !flag_space) add_tabela_erro(linha,9);
+			
+			n_op=0;
+			linha++;
+			pos=1;
+			dois_pontos=0;
+			//linha_="";
 		}
-		end++;
-		
-
-		i++;
+		else if(c==' ')
+		{
+			n_op--;
+			pos++;
+		}
 
 	}
-	fclose(file);
-	for(k=0;k<end;k++)
+
+	//Erro 12 - secao TEXT faltante
+	if(ok_section==0 && section_text==0) add_tabela_erro(-1,12);
+
+	/*if(!ok_section)
 	{
-		cout<<codigo_obj[k]<<endl;
+		if(section_text==0)
+		{ 
+			add_tabela_erro(-1,7);
+			cout<<"Secao TEXT faltando"<<endl;
+		}
+		if(section_data==0)
+		{ 
+			add_tabela_erro(-1,7);
+			cout<<"Secao DATA faltando"<<endl;
+		}
+	}*/
+
+	corrige_tabela();
+	//cout<<endl;
+	for(i=0;i<end;i++)
+	{
+		//cout<<codigo_obj[i]<<" ";
+		fputs(codigo_obj[i].c_str(),file_);
+		fputs(" ",file_);
 	}
 
+	print_tabela_simbolos();
+	print_tabela_erro();
+
+	fclose(file_);
+	fclose(file);
 }
 
-int main()
+int main(int argc,char* argv[])
 {
-	string file_name = "SOMA.txt";
-	cleaner(file_name);
 
-	passagem_unica();
+	//cout<<"Argc = "<<argc<<" Argv = "<<argv[1]<<endl;
+	prep(argv[1],argv[2]);
+	passagem_unica(argv[2],argv[3]);
 
 	//print_tabela_mnt();
 	//print_tabela_mdt();
@@ -507,16 +511,33 @@ return 0;
 }
 
 /*
-{
-Tabela de erros:
-1 -> numero de operandos errado -> Sintatico
-2 -> simbolo redefinido -> Semantico
+
+string erro[100] = 
+
+Erro 1 check - declaracao e rotulos ausentes
+Erro 2 check - declaracao e rotulos repetidos
+Erro 3 - pulo para rotulos invalidos
+Erro 4 - pulo para secao invalida
+Erro 5 - diretiva invalida
+Erro 6 - instrucao invalida
+Erro 7 check - diretivas ou intrucoes na secao errada
+Erro 8 - divisao por zero
+Erro 9 check - quantidade de operandos errada
+Erro 10 check - token invalido (lexico)
+Erro 11 ???- dois rotulos na mesma linha
+Erro 12 check - secao TEXT faltante
+Erro 13 check(da o erro 12 junto)- secao invalida
+Erro 14 - tipo de argumento invalido
+Erro 15 - modificacao de um valor constante
+
+Meus erros
+Erro 16 check - duas secao TEXT
+Erro 17 check - duas secao DATA
+
 3 -> Operaçao/diretiva nao identificada -> sintatico
-4 -> duas seções data ou data antes de texto -> semantico
-5 -> duas secoes texto ou data antes do texto -> semantico
 6 -> diretiva na seção errada -> semantico
-7 -> seção faltando -> semantico
-8 -> seção inválida -> sintatico
+check 7 -> seção faltando -> semantico
+check 8 -> seção inválida -> sintatico
 9 -> Simbolo nao declarado -> semantico
 10-> Label com simbolos nao validos -> lexico
 11-> Divisão por 0 -> semantico
