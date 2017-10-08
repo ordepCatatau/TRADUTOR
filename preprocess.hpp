@@ -260,7 +260,7 @@ void prep(string comp_mode,string arq_in)
 	int flag_macro=0;
 	int flag_text=0;
 	int flag_data=0;
-	int flag_p=0, flag_m=0;
+	int flag_p=0, flag_m=0, flag_o=0;
 	int flag_salva_macro=0;
 	int n_linha=0;
 
