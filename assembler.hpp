@@ -197,6 +197,30 @@ int busca_tabela_instrucoes(string token)
 	return -1;
 }
 
+int hexa(string word)
+{
+	int i=2;
+	
+	if(word[0]=='-') i=3;
+	for(;i<word.length();i++)
+	{
+		if(!(isdigit(word[i]) || (word[i]>='A' && word[i]<='F'))) return 1;
+	}
+	return 0;
+}
+
+int dec(string word)
+{
+	int i=0;
+	
+	if(word[0]=='-') i=1;
+	for(;i<word.length();i++)
+	{
+		if(!isdigit(word[i])) return 1;
+	}
+	return 0;
+}
+
 int scanner(string word)
 {
 	unsigned int i=0;
@@ -248,15 +272,10 @@ void passagem_unica(string arq_in, string arq_out)
 	int flag_def=0;
 	int num;
 
-
-
-
 	string word="";
 	string hex="";
 	string _word="";
 	string rot="";
-	//string sec_text="";
-	//string sec_data="";
 
 	char c;
 	char aux[100];
@@ -303,32 +322,29 @@ void passagem_unica(string arq_in, string arq_out)
 				
 				//sprintf(aux,"%d",stoi(word,nullptr,16));
 				
-				if((word[0]=='0' && word[1]=='X') || (word[1]=='0' && word[2]=='X') || word[word.length()-1]=='H')
+				if((word[0]=='0' && word[1]=='X') || (word[1]=='0' && word[2]=='X'))
 				{
-					//cout<<word<<" HEXA"<<endl;
-					try
+					if(hexa(word)) 
 					{
-						num = stoi(word,nullptr,16) ;	
-					}
-					catch(...)
-					{
-						//Erro 14 - tipo de argumento invalido
 						add_tabela_erro(linha,14);
-						num = -1;
+						num= -1;
 					}
+					else
+					{
+						num = stoi(word,nullptr,16) ;
+					}
+					
 				}	
 				else
 				{
-					//cout<<word<<" DEC"<<endl;
-					try
+					if(dec(word)) 
 					{
-						num = stoi(word,nullptr,10) ;	
-					}
-					catch(...)
-					{
-						//Erro 14 - tipo de argumento invalido
 						add_tabela_erro(linha,14);
-						num = -1;
+						num= -1;
+					}
+					else
+					{
+						num = stoi(word,nullptr,10) ;
 					}
 
 				}
