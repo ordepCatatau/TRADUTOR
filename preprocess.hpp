@@ -16,10 +16,12 @@
 #include <iostream>
 #include <string>
 #include <cstring>
+#include "assembler.hpp"
 using namespace std;
 
+
 /*Variaveis globais*/
-string tabela_mnt[100][2]; //contem os nomes das macros definidas no programa [nome da macro][numero da linha que comeca a macro na mdt]
+string tabela_mnt[100][3]; //contem os nomes das macros definidas no programa [nome da macro][numero da linha que comeca a macro na mdt]
 int contador_mnt=0;
 
 string tabela_mdt[100]; //contem os corpos das macros [numero da linha][corpo da linha]
@@ -37,6 +39,7 @@ string busca_tabela_equ(string label)
 	
 	while(i<contador_equ)
 	{
+		//cout<<tabela_equ[i][1]<<endl;
 		if(label == tabela_equ[i][0])
 		{ 	
 			return tabela_equ[i][1];
@@ -52,8 +55,7 @@ void add_tabela_equ(string label, string valor)
 	{
 		tabela_equ[contador_equ][0] = label;
 		tabela_equ[contador_equ][1] = valor;
-		//cout<<label;
-		//cout<<valor;
+		//cout<<label<<" "<<valor<<endl;
 		contador_equ++;
 	}
 }
@@ -74,11 +76,12 @@ string busca_tabela_mnt(string nome_macro)
 	return"";
 }
 //Adiciona na tabela mnt
-void add_tabela_mnt(string nome_macro)
+void add_tabela_mnt(string nome_macro,int linha)
 {
 	//cout<<"add_tabela_mnt"<<endl;
 	tabela_mnt[contador_mnt][0] = nome_macro;
 	tabela_mnt[contador_mnt][1] = to_string(contador_mdt); //linha da mdt onde comeca o corpo da macro
+	tabela_mnt[contador_mnt][2] = to_string(linha);
 	contador_mnt++;
 }
 void print_tabela_mnt()
@@ -86,7 +89,7 @@ void print_tabela_mnt()
 	int i;
 	cout<<"Tabela MNT"<<endl;
 	for(i=0;i<=contador_mnt;i++)
-		cout<<tabela_mnt[i][0]<<" "<<tabela_mnt[i][1]<<endl;	
+		cout<<tabela_mnt[i][0]<<" "<<tabela_mnt[i][1]<<" "<<tabela_mnt[i][2]<<endl;	
 }
 //retorna o corpo da macro
 string busca_tabela_mdt(int linha)
@@ -260,11 +263,12 @@ void prep(string comp_mode,string arq_in)
 	int flag_macro=0;
 	int flag_text=0;
 	int flag_data=0;
+	int flag_section=0;
 	int flag_p=0, flag_m=0, flag_o=0;
 	int flag_salva_macro=0;
 	int n_linha=0;
-
-	//char aux[100];
+	int tam_macro;
+	int call_macro;
 
 	string valor_equ;
 	string linha_mnt;
@@ -281,9 +285,6 @@ void prep(string comp_mode,string arq_in)
 
 	tam = separa_tokens(arq_in,comp_mode);
 
-//	for(i=0;i<tam;i++)
-//		cout<<token[i];
-
 	//Escrever no arquivo limpo
 	if(comp_mode=="-p")
 	{ 
@@ -293,11 +294,12 @@ void prep(string comp_mode,string arq_in)
 	else if(comp_mode=="-m")
 	{ 
 		flag_m=1;
+		flag_p=1;
 		arq_out = arq_in.replace(arq_in.begin()+arq_in.find(".asm"),arq_in.end(),".mcr");	
 	}
 	else if(comp_mode=="-o")
 	{
-		//flag_o=1;
+		flag_o=1;
 		flag_p=1;
 		flag_m=1;
 		arq_out = arq_in.replace(arq_in.begin()+arq_in.find(".asm"),arq_in.end(),".inter");
@@ -306,34 +308,47 @@ void prep(string comp_mode,string arq_in)
 	
 
 	i=0;
-	while(i<tam)
+	while(i<tam+1)
 	{
+		//cout<<token[i];
 
 		if(token[i]=="EQU" && flag_p)
 		{
-			add_tabela_equ(token[i+2],token[i+4]);
+			add_tabela_equ(token[i-4],token[i+2]);
 			flag_diretiva=1;
+			//cout<<token[i-2]<<" "<<token[i+2]<<endl;
+			
 		}
 		else if(token[i]=="IF" && flag_p)
 		{	
 			flag_diretiva = (busca_tabela_equ(token[i+2])=="0") ? 2:1;
+			//cout<<flag_diretiva<<endl;
+		}
+		else if(token[i] == "SECTION")
+		{
+			flag_section = 1;
 		}
 		else if(token[i] == "TEXT")
 		{
 			flag_data=0;
 			flag_text=1;
+			flag_section=0;
 		}
 		else if(token[i] == "DATA")
 		{
 			flag_data=1;
 			flag_text=0;
+			flag_section=0;
 		}
 		else if(token[i]=="MACRO" && flag_m)
 		{
+			//ERRO 7 - diretivas na secao errada
+			//if(flag_text==0){add_tabela_erro(n_linha,7);}
+
 			flag_macro=1;
 			flag_diretiva=1;
 			nome_macro = token[i-4];
-			add_tabela_mnt(nome_macro);
+			add_tabela_mnt(nome_macro,n_linha);
 		}
 		else if(token[i]=="END" && flag_m)
 		{	
@@ -341,7 +356,11 @@ void prep(string comp_mode,string arq_in)
 			flag_diretiva=1;
 			add_tabela_mdt(corpo_macro);
 			corpo_macro = "";
+			tam_macro=0;
 		}
+
+		if(flag_macro) tam_macro++;
+
 
 		//Carrega o corpo da macro
 		if(flag_macro && !flag_diretiva) corpo_macro += token[i];
@@ -351,6 +370,7 @@ void prep(string comp_mode,string arq_in)
 		if(linha_mnt!="")
 		{
 			flag_diretiva=1;
+			//busca_tabela_mnt[] n_linha;
 			//Resgata a macro da tabela
 			macro = busca_tabela_mdt(stoi(linha_mnt,nullptr,10));
 			flag_salva_macro=1;
@@ -360,50 +380,40 @@ void prep(string comp_mode,string arq_in)
 		linha +=token[i]; 
 		if(token[i]=="\n")
 		{
+			//cout<<flag_diretiva<<" "<<linha<<endl;
 			n_linha++;
 			if(!flag_diretiva && !flag_macro) //So escrever se habilitado
 			{
+
 				if(flag_text)
 				{	
-					//sec_text +=itoa(n_linha,aux,10);
+					fputs(linha.c_str(),file);
 					sec_text +=linha;
 				}
 				else if(flag_data)
 				{
-					//sec_data +=itoa(n_linha,aux,10);
+					fputs(linha.c_str(),file);
 					sec_data +=linha;
 				}
 				else
 				{ 
-					//sec_pretext +=itoa(n_linha,aux,10);
+					fputs(linha.c_str(),file);
 					sec_pretext	+=linha;
 				}
 			}
-			
-			else
+			else 
 			{
-				if(flag_text)
-				{ 
-					//sec_text +=itoa(n_linha,aux,10);
-					sec_text+="\n";
-				}
-				else if(flag_data) 
-				{
-					//sec_data +=itoa(n_linha,aux,10);
-					sec_data+="\n";
-				}
-				else
-				{
-					//sec_pretext +=itoa(n_linha,aux,10);
-					sec_pretext+="\n";
-				}
+				fputs("\n",file);
 			}
 			
 			if(flag_salva_macro)
 			{ 
 				flag_salva_macro=0;
 				sec_text+=macro;
+				fputs(macro.c_str(),file);
+				//cout<<macro<<endl;
 			}
+
 			linha = "";
 			if(flag_diretiva>0)
 				flag_diretiva--; //Habilita a escrita no arquivo limpo
@@ -413,11 +423,11 @@ void prep(string comp_mode,string arq_in)
 		i++;
 	}
 
-	fputs(sec_pretext.c_str(),file);
+	//fputs(sec_pretext.c_str(),file);
 	//cout<<sec_pretext<<endl;
-	fputs(sec_text.c_str(),file);
+	//fputs(sec_text.c_str(),file);
 	//cout<<sec_text<<endl;
-	fputs(sec_data.c_str(),file);
+	//fputs(sec_data.c_str(),file);
 	//cout<<sec_data<<endl;
 	fclose(file);
 	
