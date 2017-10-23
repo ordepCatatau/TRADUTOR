@@ -404,7 +404,7 @@ void passagem_unica(string arq_in, string arq_out)
 			}
 			if(flag_mem ||(flag_copy && (pos==4||pos==6)))
 			{
-				cout<<word<<endl;
+				//cout<<word<<endl;
 				flag_mem=0;
 				label_mem[contador_mem][0] = word;
 				label_mem[contador_mem][1] = to_string(linha);
@@ -431,6 +431,7 @@ void passagem_unica(string arq_in, string arq_out)
 			}
 			if(flag_div)
 			{
+				//	cout<<"flag_div"<<endl;
 				flag_div=0;
 
 				label_div[contador_div][0] = word;
@@ -439,7 +440,7 @@ void passagem_unica(string arq_in, string arq_out)
 			}
 			if(flag_inst)
 			{
-				//cout<<"flag_inst"<<endl;
+			//	cout<<"flag_inst"<<endl;
 				flag_inst=0;
 				try
 				{
@@ -459,14 +460,14 @@ void passagem_unica(string arq_in, string arq_out)
 			{
 				word="";
 				n_op++;
-				if(pos!=3 && pos!=5) cout<<"Virgula no lugar errado"<<endl;
+			//	if(pos!=3 && pos!=5) cout<<"Virgula no lugar errado"<<endl;
 			}
 			if(word=="+")
 			{
 				flag_p=1;
 				word="";
 				n_op=n_op+2;
-				if(pos!=3 && pos!=5) cout<<"+ no lugar errado"<<endl;
+			//	if(pos!=3 && pos!=5) cout<<"+ no lugar errado"<<endl;
 			}
 			if(word==":")
 			{
@@ -485,7 +486,7 @@ void passagem_unica(string arq_in, string arq_out)
 					flag_def=1;
 					add_tabela_erro(linha,1);
 				} 
-				else if(pos!=2) cout<<"Dois pontos no lugar errado"<<endl;
+				//else if(pos!=2) cout<<"Dois pontos no lugar errado"<<endl;
 			}
 			if(flag_rot)
 			{
@@ -507,6 +508,7 @@ void passagem_unica(string arq_in, string arq_out)
 				word="";
 			}
 
+			//cout<<"oi"<<endl;
 			//Identificacao de label
 			n_inst = busca_tabela_instrucoes(word);
 			
@@ -514,7 +516,7 @@ void passagem_unica(string arq_in, string arq_out)
 			{
 				//ERRO 14 - TIPO de argumento invalido palavra reservada
 				add_tabela_erro(linha,14);
-				cout<<"Palavra reservada "<<word<<endl;
+			//	cout<<"Palavra reservada "<<word<<endl;
 				word="";
 			}
 
@@ -541,7 +543,7 @@ void passagem_unica(string arq_in, string arq_out)
 						}
 						else
 						{
-							cout<<"Definicao de simbolo fora de uma secao"<<endl;
+					//		cout<<"Definicao de simbolo fora de uma secao"<<endl;
 							add_tabela_simbolos(word,1,end,-1);
 						}
 						
@@ -741,6 +743,7 @@ void passagem_unica(string arq_in, string arq_out)
 	
 	}//FIM de while
 
+	//cout<<"fora"<<endl;
 	for(i=0;i<contador_simbolos;i++)
 	{
 		for(j=0;j<contador_jump;j++)
@@ -785,12 +788,17 @@ void passagem_unica(string arq_in, string arq_out)
 
 	}
 
+	//cout<<"ainda"<<endl;
 	//Erro 12 - secao TEXT faltante
-	if(section_text==0 && ok_section==0) add_tabela_erro(-1,12);
-
+	if(section_text==0 && ok_section==0) 
+	{
+		add_tabela_erro(-1,12);
+		global_start=0;
+	}
 	corrige_tabela();
 	corrige_end_vetor(shift,contador_shift);
 
+	//cout<<"PQ??"<<endl;
 	//Se nao comecar da section text
 	for(i=global_start;i<end;i++)
 	{
@@ -805,8 +813,13 @@ void passagem_unica(string arq_in, string arq_out)
 		fputs(" ",file_);
 	}
 
+	//cout<<"ultimo"<<endl;
 	//DEBUG
-	print_tabela_simbolos();
+	if(DEBUG)
+	{
+		print_tabela_simbolos();
+	}
+
 	print_tabela_erro();
 
 }//FIM da primeira passagem
